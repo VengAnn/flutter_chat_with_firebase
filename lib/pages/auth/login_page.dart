@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_wechat_firebase/pages/my_home_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+
     // delay for see animation when show this page or screen
     Future.delayed(
       const Duration(milliseconds: 500),
@@ -26,14 +29,47 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  _handleGoogleBtnClick() {
+    _signInWithGoogle().then((user) {
+      print('\nUser: ${user.user}');
+      print('\nUserAdditionalInfo: ${user.additionalUserInfo}');
+      //
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MyHomePage(),
+        ),
+      );
+    });
+  }
+
+  Future<UserCredential> _signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
   @override
   Widget build(BuildContext context) {
     var mediaQueryGlobal = MediaQuery.of(context).size;
     return Scaffold(
       // appbar
       appBar: AppBar(
+        automaticallyImplyLeading: false, // hides the back button
         elevation: 1,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.blue,
         centerTitle: true,
         title: Text("Welcome We Chat"),
       ),
@@ -71,12 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                           backgroundColor: AllColor.pGreenColor.withAlpha(7),
                         ),
                         onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => MyHomePage(),
-                            ),
-                          );
+                          _handleGoogleBtnClick();
                         },
                         icon: Padding(
                           padding:

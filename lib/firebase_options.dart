@@ -63,6 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '260957915764',
     projectId: 'flutter-we-chat-2ba3a',
     storageBucket: 'flutter-we-chat-2ba3a.appspot.com',
+    androidClientId: '260957915764-c1h3p5du70dik4f6kvo8fdavs1ulqf8t.apps.googleusercontent.com',
+    iosClientId: '260957915764-ft1uq4t07unl7etva2g6hba67acclso4.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterWechatFirebase',
   );
 }

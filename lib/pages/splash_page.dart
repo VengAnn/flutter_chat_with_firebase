@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_wechat_firebase/pages/auth/login_page.dart';
 import 'package:flutter_wechat_firebase/pages/my_home_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 
@@ -14,12 +16,24 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+
     //delay splash screen
     Future.delayed(
       Duration(seconds: 3),
       () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (_) => MyHomePage()));
+        // To Exit the full screen mode
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+            overlays: SystemUiOverlay.values);
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+        );
+
+        // Navigate to login page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => LoginPage()), // Replace current route
+        );
       },
     );
   }

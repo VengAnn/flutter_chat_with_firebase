@@ -9,7 +9,7 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         elevation: 1,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () {},
           icon: Icon(Icons.home_outlined),

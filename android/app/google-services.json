@@ -12,7 +12,20 @@
           "package_name": "com.example.flutter_wechat_firebase"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "260957915764-c1h3p5du70dik4f6kvo8fdavs1ulqf8t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_wechat_firebase",
+            "certificate_hash": "b47afc40cf747de05871e25fb688157f30d5b65a"
+          }
+        },
+        {
+          "client_id": "260957915764-4hjbqh97dp5d6p1qg8mel4g68qrmng9v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBCqzOyppBk3GOiy0ARhfJwgRRAUHKqE24"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "260957915764-4hjbqh97dp5d6p1qg8mel4g68qrmng9v.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "260957915764-ft1uq4t07unl7etva2g6hba67acclso4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterWechatFirebase"
+              }
+            }
+          ]
         }
       }
     }

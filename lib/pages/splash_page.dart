@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/pages/auth/login_page.dart';
 import 'package:flutter_wechat_firebase/pages/my_home_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
@@ -28,12 +29,20 @@ class _SplashPageState extends State<SplashPage> {
           SystemUiOverlayStyle(statusBarColor: Colors.transparent),
         );
 
-        // Navigate to login page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (_) => LoginPage()), // Replace current route
-        );
+        if (APIs.auth.currentUser != null) {
+          debugPrint('\nUser: ${APIs.auth.currentUser}');
+
+          // Navigate to login page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (_) => LoginPage()), // Replace current route
+          );
+        } else {
+          //navigate to login screen
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => const LoginPage()));
+        }
       },
     );
   }

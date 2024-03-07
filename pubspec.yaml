@@ -44,6 +44,8 @@ dependencies:
   # for handling google sign in
   google_sign_in: ^6.2.1
  
+  # for access cloud fireStore database
+  cloud_firestore: ^4.15.7
 
 dev_dependencies:
   flutter_test:

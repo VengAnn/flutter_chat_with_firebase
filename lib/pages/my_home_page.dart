@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,7 +43,7 @@ class MyHomePage extends StatelessWidget {
           if (snapshot.hasData) {
             final data = snapshot.data?.docs;
             for (var i in data!) {
-              log('Data: ${i.data()}');
+              log('Data: ${jsonEncode(i.data())}');
             }
           } else if (snapshot.hasError) {
             log('Error: ${snapshot.error}');

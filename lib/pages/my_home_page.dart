@@ -2,14 +2,36 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
+import 'package:flutter_wechat_firebase/models/chat_user.dart';
+import 'package:flutter_wechat_firebase/pages/profile_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 import 'package:flutter_wechat_firebase/widgets/chat_user_card.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  // storing all users
+  List<ChatUser> _listUser = [];
+
+  // storing searched items
+  List<ChatUser> _searchList = [];
+  bool _isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    APIs.getSelfInfo();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,39 +44,90 @@ class MyHomePage extends StatelessWidget {
           icon: Icon(Icons.home_outlined),
         ),
         centerTitle: true,
-        title: Text("We Chat"),
+        title: _isSearching
+            ? TextField(
+                decoration: InputDecoration(
+                    border: InputBorder.none, hintText: "Name, Email, ..."),
+                autofocus: true,
+                style: const TextStyle(fontSize: 17, letterSpacing: 0.5),
+                // when search text changes then updated search list
+                onChanged: (value) {
+                  // search logic
+                  _searchList.clear();
+
+                  for (var i in _listUser) {
+                    if (i.name.toLowerCase().contains(value.toLowerCase()) ||
+                        i.email.toLowerCase().contains(value.toLowerCase())) {
+                      _searchList.add(i);
+                    }
+                    setState(() {
+                      _searchList;
+                    });
+                  }
+                },
+              )
+            : Text("We Chat"),
         actions: [
-          // search button
+          //search user button
           IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+              });
+            },
+            icon: Icon(_isSearching
+                ? CupertinoIcons.clear_circled_solid
+                : Icons.search),
           ),
+
           // more feature button
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => ProfilePage(
+                          user: APIs.me,
+                        )),
+              );
+            },
             icon: Icon(Icons.more_vert_outlined),
           ),
         ],
       ),
 
       body: StreamBuilder(
-        stream: APIs.firestore.collection('users').snapshots(),
+        stream: APIs.getAllUsers(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final data = snapshot.data?.docs;
-            for (var i in data!) {
-              log('Data: ${jsonEncode(i.data())}');
-            }
-          } else if (snapshot.hasError) {
-            log('Error: ${snapshot.error}');
+          switch (snapshot.connectionState) {
+            // if data loading
+            case ConnectionState.waiting:
+            case ConnectionState.none:
+              return const Center(child: CircularProgressIndicator());
+
+            // if some or all data is loaded then show it
+            case ConnectionState.active:
+            case ConnectionState.done:
+              final data = snapshot.data!.docs;
+              _listUser = data.map((e) => ChatUser.fromJson(e.data())).toList();
+
+              if (_listUser.isNotEmpty) {
+                // list view builder
+                return ListView.builder(
+                  itemCount:
+                      _isSearching ? _searchList.length : _listUser.length,
+                  physics: BouncingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return ChatUserCard(
+                        user: _isSearching
+                            ? _searchList[index]
+                            : _listUser[index]);
+                  },
+                );
+              } else {
+                return Center(child: Text("No Connection found!"));
+              }
           }
-          return ListView.builder(
-            itemCount: 16,
-            physics: BouncingScrollPhysics(),
-            itemBuilder: (context, index) {
-              return ChatUserCard();
-            },
-          );
         },
       ),
       // floating button to add ...

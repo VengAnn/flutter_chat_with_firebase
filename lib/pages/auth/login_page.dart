@@ -35,20 +35,29 @@ class _LoginPageState extends State<LoginPage> {
     //for showing progress bar
     Dialogs.showProgressBar(context);
 
-    _signInWithGoogle().then((user) {
+    _signInWithGoogle().then((user) async {
       //for hiding progress bar
       Navigator.pop(context);
 
       if (user != null) {
         print('\nUser: ${user.user}');
         print('\nUserAdditionalInfo: ${user.additionalUserInfo}');
-        //
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MyHomePage(),
-          ),
-        );
+
+        // if user is exists
+        if (await APIs.userExists()) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MyHomePage(),
+            ),
+          );
+        } else {
+          // if not exists create user
+          await APIs.creatUser().then(
+            (value) => Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (_) => MyHomePage())),
+          );
+        }
       }
     });
   }
@@ -76,12 +85,6 @@ class _LoginPageState extends State<LoginPage> {
       return null;
     }
   }
-
-  //sign out function
-  // _signOut() async {
-  //   await FirebaseAuth.instance.signOut();
-  //   await GoogleSignIn().signOut();
-  // }
 
   @override
   Widget build(BuildContext context) {

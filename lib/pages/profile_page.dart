@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_wechat_firebase/models/chat_user.dart';
 import 'package:flutter_wechat_firebase/pages/auth/login_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfilePage extends StatefulWidget {
   final ChatUser user;
@@ -21,6 +23,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
+  String? _image; //save the path string from image gallery
 
   @override
   Widget build(BuildContext context) {
@@ -46,19 +49,34 @@ class _ProfilePageState extends State<ProfilePage> {
                       //user profile picture
                       Stack(
                         children: [
-                          ClipRRect(
-                            borderRadius:
-                                BorderRadius.circular(med_Global.height / 2),
-                            child: CachedNetworkImage(
-                              width: med_Global.width * 0.6,
-                              height: med_Global.height * 0.3,
-                              fit: BoxFit.cover,
-                              imageUrl: widget.user.image,
-                              errorWidget: (context, url, error) =>
-                                  const CircleAvatar(
-                                      child: Icon(CupertinoIcons.person)),
-                            ),
-                          ),
+                          _image != null
+                              ?
+                              // local image
+                              ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      med_Global.height / 2),
+                                  child: Image.file(
+                                    File(_image!),
+                                    width: med_Global.width * 0.6,
+                                    height: med_Global.height * 0.3,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              :
+                              //image from server
+                              ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      med_Global.height / 2),
+                                  child: CachedNetworkImage(
+                                    width: med_Global.width * 0.6,
+                                    height: med_Global.height * 0.3,
+                                    fit: BoxFit.cover,
+                                    imageUrl: widget.user.image,
+                                    errorWidget: (context, url, error) =>
+                                        const CircleAvatar(
+                                            child: Icon(CupertinoIcons.person)),
+                                  ),
+                                ),
                           //
                           Positioned(
                             bottom: 0,
@@ -68,7 +86,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               shape: CircleBorder(),
                               color: AllColor.pWhiteCOlor,
                               minWidth: double.minPositive,
-                              onPressed: () {},
+                              onPressed: () {
+                                __showButtonSheet();
+                              },
                               child: Icon(
                                 Icons.edit,
                                 color: AllColor.pBlueColor,
@@ -186,5 +206,96 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  //buttonSheet for picking the profile picture for user
+  void __showButtonSheet() {
+    showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0)),
+        ),
+        builder: (_) {
+          return ListView(
+            shrinkWrap: true,
+            padding: EdgeInsets.only(top: 20, bottom: 10),
+            children: [
+              Text(
+                "Pick Profile Picture",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              //button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  //pick from gallery button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: CircleBorder(),
+                      fixedSize: Size(120, 60),
+                    ),
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(
+                          source: ImageSource.gallery, imageQuality: 80);
+                      if (image != null) {
+                        log('Image path: ${image.path} --MimeType: ${image.mimeType}');
+                        setState(() {
+                          _image = image.path;
+                        });
+
+                        //updating the selecting image to firebase storage
+                        APIs.updateProfilePicture(File(_image!));
+
+                        //for hiding buttonSheet
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image(
+                          image: AssetImage('assets/images/add_image.png')),
+                    ),
+                  ),
+                  //take picture from camera button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: CircleBorder(),
+                      fixedSize: Size(120, 60),
+                    ),
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(
+                          source: ImageSource.camera, imageQuality: 80);
+                      if (image != null) {
+                        log('Image path: ${image.path}');
+                        setState(() {
+                          _image = image.path;
+                        });
+
+                        APIs.updateProfilePicture(File(_image!));
+
+                        //for hiding buttonSheet
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.asset('assets/images/camera.png'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        });
   }
 }

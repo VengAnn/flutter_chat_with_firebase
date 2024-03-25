@@ -163,7 +163,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       if (_formKey.currentState!.validate()) {
                         //print('inside validate');
                         _formKey.currentState!.save();
-                        APIs.udpateUserInfo();
+                        APIs.updateUserInfo();
                         Dialogs.showSnackBar(
                             context, "Profile update successfully`💖");
                       }

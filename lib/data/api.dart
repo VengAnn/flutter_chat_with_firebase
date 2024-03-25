@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_wechat_firebase/models/chat_user.dart';
+import 'package:flutter_wechat_firebase/models/message_model.dart';
 
 class APIs {
   // for authentication
@@ -66,7 +67,7 @@ class APIs {
   }
 
   // for updating user information
-  static Future<void> udpateUserInfo() async {
+  static Future<void> updateUserInfo() async {
     await firestore.collection('users').doc(user.uid).update({
       'name': me.name,
       'about': me.about,
@@ -99,4 +100,63 @@ class APIs {
       log('Error updating profile picture: $error');
     }
   }
+
+  ///
+  ///
+  ///**************Chat Screen Related APIS ************///
+  // chats (collection) --> conversation_id (doc) --> messages (collection) --> message (doc)
+
+  // useful for getting conversation id
+  static String getConversationID(String id) => user.uid.hashCode <= id.hashCode
+      ? '${user.uid}_$id'
+      : '${id}_${user.uid}';
+
+  // for getting all message of a specific conversation from firestore database
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessage(
+      ChatUser chatUserc) {
+    return firestore
+        .collection('chats/${getConversationID(chatUserc.id)}/messages')
+        .snapshots();
+  }
+
+  // for sending message
+  static Future<void> sendMessage(ChatUser chatUser, String msg) async {
+    // message sending time (also used as id)
+    final time = DateTime.now().millisecondsSinceEpoch.toString();
+
+    // message to send
+    final MessageModel messageModel = MessageModel(
+      toId: chatUser.id,
+      fromId: user.uid,
+      msg: msg,
+      read: '',
+      send: time,
+      type: Type.text,
+    );
+
+    final ref = firestore
+        .collection('chats/${getConversationID(chatUser.id)}/messages/');
+
+    await ref.doc(time).set(messageModel.toJson());
+  }
+
+  // update read status of message
+  static Future<void> updateMessageReadStatus(MessageModel messageModel) async {
+    firestore
+        .collection('chats/${getConversationID(messageModel.fromId!)}/messages')
+        .doc(messageModel.send)
+        .update({'read': DateTime.now().millisecondsSinceEpoch.toString()});
+  }
+
+  // get only last message of a specific chat
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessage(
+      ChatUser chatUser) {
+    return firestore
+        .collection('chats/${getConversationID(chatUser.id)}/messages')
+        .orderBy('send', descending: true)
+        .limit(1)
+        .snapshots();
+  }
+
+  //
 }

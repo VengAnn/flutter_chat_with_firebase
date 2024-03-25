@@ -1,3 +1,6 @@
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_wechat_firebase/components/dialog.dart';
@@ -64,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<UserCredential?> _signInWithGoogle() async {
     try {
+      await InternetAddress.lookup('google.com');
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
@@ -80,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
       // Once signed in, return the UserCredential
       return await APIs.auth.signInWithCredential(credential);
     } catch (e) {
-      debugPrint('\n_signInWithGoogle: $e');
+      log('\n_signInWithGoogle: $e');
       Dialogs.showSnackBar(context, 'Something Went Wrong (Check Internet!)');
       return null;
     }

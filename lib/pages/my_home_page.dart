@@ -136,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       physics: BouncingScrollPhysics(),
                       itemBuilder: (context, index) {
                         return ChatUserCard(
-                            user: _isSearching
+                            chatUser: _isSearching
                                 ? _searchList[index]
                                 : _listUser[index]);
                       },

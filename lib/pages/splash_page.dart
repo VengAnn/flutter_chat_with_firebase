@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
@@ -30,13 +32,13 @@ class _SplashPageState extends State<SplashPage> {
         );
 
         if (APIs.auth.currentUser != null) {
-          debugPrint('\nUser: ${APIs.auth.currentUser}');
+          log('\nUser: ${APIs.auth.currentUser}');
 
-          // Navigate to login page
+          // Navigate to Home page or MyHomePage
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (_) => LoginPage()), // Replace current route
+                builder: (_) => MyHomePage()), // Replace current route
           );
         } else {
           //navigate to login screen

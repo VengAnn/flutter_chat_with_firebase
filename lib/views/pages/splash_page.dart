@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
-import 'package:flutter_wechat_firebase/pages/auth/login_page.dart';
-import 'package:flutter_wechat_firebase/pages/my_home_page.dart';
+import 'package:flutter_wechat_firebase/views/pages/auth/login_page.dart';
+import 'package:flutter_wechat_firebase/views/pages/my_home_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 
 class SplashPage extends StatefulWidget {

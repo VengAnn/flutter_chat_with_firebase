@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_wechat_firebase/components/dialog.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/models/chat_user.dart';
-import 'package:flutter_wechat_firebase/pages/auth/login_page.dart';
+import 'package:flutter_wechat_firebase/views/pages/auth/login_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
@@ -185,6 +185,8 @@ class _ProfilePageState extends State<ProfilePage> {
               // for showing progress dialog
               Dialogs.showProgressBar(context);
 
+              await APIs.updateActiveStatus(false); //it's mean offline
+
               // sign out from app
               await FirebaseAuth.instance.signOut().then((value) async {
                 await GoogleSignIn().signOut().then((value) {
@@ -193,6 +195,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   // for moving to home screen
                   Navigator.pop(context);
+
+                  APIs.auth = FirebaseAuth.instance;
 
                   // replacing home screen to login screen
                   Navigator.pushReplacement(

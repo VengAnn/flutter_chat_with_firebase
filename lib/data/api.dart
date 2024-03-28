@@ -41,7 +41,7 @@ class APIs {
 
   // for creating a new user
   static Future<void> creatUser() async {
-    final time = DateTime.now().microsecondsSinceEpoch.toString();
+    final time = DateTime.now().millisecondsSinceEpoch.toString();
 
     final chatUser = ChatUser(
       image: user.photoURL.toString(),
@@ -101,6 +101,23 @@ class APIs {
     }
   }
 
+  //for getting specific user info
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(
+      ChatUser chatUser) {
+    return firestore
+        .collection('users')
+        .where('id', isEqualTo: chatUser.id)
+        .snapshots();
+  }
+
+  // update online or last active status of user
+  static Future<void> updateActiveStatus(bool isOnline) async {
+    firestore.collection('users').doc(user.uid).update({
+      'is_online': isOnline,
+      'last_active': DateTime.now().millisecondsSinceEpoch.toString(),
+    });
+  }
+
   ///
   ///
   ///**************Chat Screen Related APIS ************///
@@ -120,7 +137,8 @@ class APIs {
   }
 
   // for sending message
-  static Future<void> sendMessage(ChatUser chatUser, String msg) async {
+  static Future<void> sendMessage(
+      ChatUser chatUser, String msg, Type type) async {
     // message sending time (also used as id)
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -131,7 +149,7 @@ class APIs {
       msg: msg,
       read: '',
       send: time,
-      type: Type.text,
+      type: type,
     );
 
     final ref = firestore
@@ -153,9 +171,32 @@ class APIs {
       ChatUser chatUser) {
     return firestore
         .collection('chats/${getConversationID(chatUser.id)}/messages')
-        .orderBy('send', descending: true)
-        .limit(1)
+        .orderBy('send', descending: true) //it's mean big to small
+        .limit(1) // get only one is big or highest value
         .snapshots();
+  }
+
+  //send chat image to firebase for storing image
+  static Future<void> sendChatImage(ChatUser chatUser, File file) async {
+    try {
+      // getting image file extension
+      final ext = file.path.split('.').last; //ext like png jpg or ...
+
+      final ref = storage.ref().child(
+          'images/${getConversationID(chatUser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+      // Uploading image
+      await ref.putFile(file, SettableMetadata(contentType: 'image/$ext'));
+      log('Image uploaded successfully');
+
+      // updating image in firestore database
+      final imageUrl = await ref.getDownloadURL();
+      await sendMessage(chatUser, imageUrl, Type.image);
+      log('sucessfully send Image Message');
+    } catch (error, stackTrace) {
+      log('Error uploading image: $error');
+      log('Stack trace: $stackTrace');
+    }
   }
 
   //

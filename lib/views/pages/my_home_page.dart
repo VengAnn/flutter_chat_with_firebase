@@ -3,9 +3,10 @@ import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/models/chat_user.dart';
-import 'package:flutter_wechat_firebase/pages/profile_page.dart';
+import 'package:flutter_wechat_firebase/views/pages/profile_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 import 'package:flutter_wechat_firebase/widgets/chat_user_card.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -30,6 +31,28 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     APIs.getSelfInfo();
+
+    // for setting user status to active
+    APIs.updateActiveStatus(true);
+
+    //for updating user active status according to lifecycle events
+    //resume -- active or online
+    //pause -- inactive or offline
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      log('Message: $message');
+
+      if (APIs.auth.currentUser != null) {
+        if (message.toString().contains('resume')) {
+          APIs.updateActiveStatus(true);
+        }
+
+        if (message.toString().contains('pause')) {
+          APIs.updateActiveStatus(false); //it's mean offline
+        }
+      }
+
+      return Future.value(message);
+    });
   }
 
   @override

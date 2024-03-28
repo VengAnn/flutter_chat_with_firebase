@@ -7,7 +7,7 @@ import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/models/chat_user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_wechat_firebase/models/message_model.dart';
-import 'package:flutter_wechat_firebase/pages/chat_page.dart';
+import 'package:flutter_wechat_firebase/views/pages/chat_page.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 import 'package:flutter_wechat_firebase/utils/my_date_util.dart';
 
@@ -95,7 +95,9 @@ class _ChatUserCardState extends State<ChatUserCard> {
                       //message sent time
                       Text(
                           MyDateUtil.getLastMessageTime(
-                              context: context, time: _messageModel!.send!),
+                            context: context,
+                            time: _messageModel!.send!,
+                          ),
                           style: const TextStyle(color: Colors.black54),
                         ),
             );

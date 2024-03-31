@@ -21,9 +21,13 @@ class MessageCard extends StatefulWidget {
 class _MessageCardState extends State<MessageCard> {
   @override
   Widget build(BuildContext context) {
-    return APIs.user.uid == widget.messageModel.fromId
-        ? _greenMessage()
-        : _blueMessage();
+    bool isMe = APIs.user.uid == widget.messageModel.fromId;
+    return InkWell(
+      onLongPress: () {
+        _showMessageUpdateDialog(isMe);
+      },
+      child: isMe ? _greenMessage() : _blueMessage(),
+    );
   }
 
   // sender or another user message
@@ -165,6 +169,152 @@ class _MessageCardState extends State<MessageCard> {
           ),
         ),
       ],
+    );
+  }
+
+  //dialog for updating message content
+  void _showMessageUpdateDialog(bool isMe) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) {
+        return ListView(
+          shrinkWrap: true,
+          children: [
+            // black divider
+            Container(
+              height: 4,
+              margin: EdgeInsets.symmetric(horizontal: 150.0, vertical: 10.0),
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            //add some space
+            SizedBox(height: 10.0),
+
+            widget.messageModel.type == Type.text
+                ?
+                //copy option
+                _OptionItem(
+                    icon: Icon(
+                      Icons.copy_all_outlined,
+                      size: 26,
+                      color: Colors.blue,
+                    ),
+                    name: "Copy",
+                    onTap: () {},
+                  )
+                :
+                //save image
+                _OptionItem(
+                    icon: Icon(
+                      Icons.download_for_offline,
+                      size: 26,
+                      color: Colors.blue,
+                    ),
+                    name: "Save Image",
+                    onTap: () {},
+                  ),
+
+            if (isMe)
+              //seperator or divider
+              Divider(
+                color: Colors.black,
+                endIndent: 20,
+                indent: 20,
+              ),
+
+            if (widget.messageModel.type == Type.text && isMe)
+              //edit option
+              _OptionItem(
+                icon: Icon(
+                  Icons.edit,
+                  size: 26,
+                  color: Colors.blue,
+                ),
+                name: "Edit Message",
+                onTap: () {},
+              ),
+
+            if (isMe)
+              //Delete option
+              _OptionItem(
+                icon: Icon(
+                  Icons.delete_forever,
+                  size: 26,
+                  color: Colors.red,
+                ),
+                name: "Delete Message",
+                onTap: () {},
+              ),
+
+            //seperator or divider
+            Divider(
+              color: Colors.black,
+              endIndent: 20,
+              indent: 20,
+            ),
+
+            //send time
+            _OptionItem(
+              icon: Icon(
+                Icons.remove_red_eye,
+                size: 26,
+                color: Colors.blue,
+              ),
+              name: "Sent At: ",
+              onTap: () {},
+            ),
+            //read time
+            _OptionItem(
+              icon: Icon(
+                Icons.remove_red_eye,
+                size: 26,
+                color: Colors.green,
+              ),
+              name: "Read At: ",
+              onTap: () {},
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+//
+class _OptionItem extends StatelessWidget {
+  final Icon icon;
+  final String name;
+  final VoidCallback onTap;
+
+  const _OptionItem({
+    required this.icon,
+    required this.name,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 15.0, bottom: 15.0, top: 10.0),
+        child: Row(
+          children: [
+            icon,
+            Flexible(
+              child: Text(
+                '     $name',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

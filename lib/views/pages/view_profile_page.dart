@@ -85,6 +85,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                       fontSize: 18,
                     ),
                   ),
+                  //
                   Text(
                     MyDateUtil.getLastMessageTime(
                       context: context,

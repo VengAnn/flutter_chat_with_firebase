@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_wechat_firebase/components/dialog_profile/profile_dailog.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/models/chat_user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -55,12 +56,20 @@ class _ChatUserCardState extends State<ChatUserCard> {
 
             return ListTile(
               // user profile picture
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(med_Global.height * 0.3),
-                child: CachedNetworkImage(
-                  imageUrl: widget.chatUser.image,
-                  placeholder: (context, url) => CircularProgressIndicator(),
-                  errorWidget: (context, url, error) => Icon(Icons.error),
+              leading: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => ProfileDialog(chatUser: widget.chatUser),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(med_Global.height * 0.3),
+                  child: CachedNetworkImage(
+                    imageUrl: widget.chatUser.image,
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => Icon(Icons.error),
+                  ),
                 ),
               ),
               // user name

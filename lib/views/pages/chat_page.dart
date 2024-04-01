@@ -35,17 +35,31 @@ class _ChatPageState extends State<ChatPage> {
   //isUploading -- for checking if image is uploading or not?
   bool _showEmoji = false, _isUploading = false;
 
+  // Define a FocusNode
+  final FocusNode _textFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    // Dispose the FocusNode
+    _textFocusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final med_Global = MediaQuery.of(context).size;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
+      // ignore: deprecated_member_use
       child: WillPopScope(
         //if emojis are shown & back button is pressed then hide emojis
         //or else simple close current screen on back button click
         onWillPop: () {
           if (_showEmoji) {
-            setState(() => _showEmoji = !_showEmoji);
+            setState(() {
+              _showEmoji = !_showEmoji;
+            });
+
             return Future.value(false);
           } else {
             return Future.value(true);
@@ -235,6 +249,11 @@ class _ChatPageState extends State<ChatPage> {
                   onPressed: () {
                     setState(() {
                       _showEmoji = !_showEmoji;
+                      log('emoji ${_showEmoji}');
+                      if (_showEmoji) {
+                        // Close the original keyboard
+                        FocusScope.of(context).unfocus();
+                      }
                     });
                   },
                   icon: Icon(
@@ -245,6 +264,14 @@ class _ChatPageState extends State<ChatPage> {
                 //
                 Expanded(
                   child: TextField(
+                    onTap: () {
+                      // Close the showEmoji when TextField is tapped
+                      if (_showEmoji) {
+                        setState(() {
+                          _showEmoji = false;
+                        });
+                      }
+                    },
                     keyboardType: TextInputType.multiline,
                     maxLines: null,
                     controller: _textMessageInputController,
@@ -290,13 +317,17 @@ class _ChatPageState extends State<ChatPage> {
                       setState(() => _isUploading = true);
 
                       await APIs.sendChatImage(
-                          widget.chatUser, File(image.path));
+                        widget.chatUser,
+                        File(image.path),
+                      );
                       //
                       setState(() => _isUploading = false);
                     }
                   },
-                  icon: Icon(Icons.camera_alt_rounded,
-                      color: AllColor.pBlueColor),
+                  icon: Icon(
+                    Icons.camera_alt_rounded,
+                    color: AllColor.pBlueColor,
+                  ),
                 ),
               ],
             ),
@@ -312,7 +343,10 @@ class _ChatPageState extends State<ChatPage> {
           onPressed: () {
             if (_textMessageInputController.text.isNotEmpty) {
               APIs.sendMessage(
-                  widget.chatUser, _textMessageInputController.text, Type.text);
+                widget.chatUser,
+                _textMessageInputController.text,
+                Type.text,
+              );
               _textMessageInputController.text = "";
             }
           },

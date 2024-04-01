@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_wechat_firebase/components/dialog.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/models/message_model.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
@@ -176,7 +178,7 @@ class _MessageCardState extends State<MessageCard> {
   void _showMessageUpdateDialog(bool isMe) {
     showModalBottomSheet(
       context: context,
-      builder: (_) {
+      builder: (DialogContext) {
         return ListView(
           shrinkWrap: true,
           children: [
@@ -201,8 +203,18 @@ class _MessageCardState extends State<MessageCard> {
                       size: 26,
                       color: Colors.blue,
                     ),
-                    name: "Copy",
-                    onTap: () {},
+                    name: "Copy Text",
+                    onTap: () async {
+                      log('pressed copy');
+                      await Clipboard.setData(
+                              ClipboardData(text: widget.messageModel.msg!))
+                          .then((value) {
+                        // for hiding button sheet
+                        Navigator.pop(DialogContext);
+
+                        Dialogs.showSnackBar(DialogContext, 'Text copied!');
+                      });
+                    },
                   )
                 :
                 //save image
@@ -245,7 +257,12 @@ class _MessageCardState extends State<MessageCard> {
                   color: Colors.red,
                 ),
                 name: "Delete Message",
-                onTap: () {},
+                onTap: () async {
+                  await APIs.deleteMessage(widget.messageModel).then((value) {
+                    //for hiding bottom sheet
+                    Navigator.pop(context);
+                  });
+                },
               ),
 
             //seperator or divider
@@ -262,9 +279,13 @@ class _MessageCardState extends State<MessageCard> {
                 size: 26,
                 color: Colors.blue,
               ),
-              name: "Sent At: ",
+              name: "Sent At: ${MyDateUtil.getMessageTime(
+                context: DialogContext,
+                time: widget.messageModel.send!,
+              )}",
               onTap: () {},
             ),
+
             //read time
             _OptionItem(
               icon: Icon(
@@ -272,7 +293,9 @@ class _MessageCardState extends State<MessageCard> {
                 size: 26,
                 color: Colors.green,
               ),
-              name: "Read At: ",
+              name: widget.messageModel.read!.isEmpty
+                  ? "Read At: Not seen yet"
+                  : "Read At: ${MyDateUtil.getMessageTime(context: DialogContext, time: widget.messageModel.read!)}",
               onTap: () {},
             ),
           ],
@@ -286,7 +309,7 @@ class _MessageCardState extends State<MessageCard> {
 class _OptionItem extends StatelessWidget {
   final Icon icon;
   final String name;
-  final VoidCallback onTap;
+  final Function()? onTap;
 
   const _OptionItem({
     required this.icon,
@@ -297,7 +320,7 @@ class _OptionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => onTap,
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.only(left: 15.0, bottom: 15.0, top: 10.0),
         child: Row(

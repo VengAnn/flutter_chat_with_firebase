@@ -268,5 +268,13 @@ class APIs {
     }
   }
 
-  //
+  //delete message
+  static Future<void> deleteMessage(MessageModel messageModel) async {
+    await firestore
+        .collection('chats/${getConversationID(messageModel.toId!)}/messages/')
+        .doc(messageModel.send)
+        .delete();
+    if (messageModel.type == Type.image)
+      await storage.refFromURL(messageModel.msg!).delete();
+  }
 }

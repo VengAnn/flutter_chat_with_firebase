@@ -1,8 +1,6 @@
 import 'dart:developer';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_wechat_firebase/components/dialog_profile/profile_dailog.dart';
 import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/models/chat_user.dart';

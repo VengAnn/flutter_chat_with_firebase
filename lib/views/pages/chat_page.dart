@@ -49,7 +49,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final med_Global = MediaQuery.of(context).size;
     return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
+      onTap: () {
+        //close text field or keyboard
+        FocusScope.of(context).unfocus();
+      },
       // ignore: deprecated_member_use
       child: WillPopScope(
         //if emojis are shown & back button is pressed then hide emojis
@@ -342,12 +345,16 @@ class _ChatPageState extends State<ChatPage> {
           shape: CircleBorder(),
           onPressed: () {
             if (_textMessageInputController.text.isNotEmpty) {
-              APIs.sendMessage(
-                widget.chatUser,
-                _textMessageInputController.text,
-                Type.text,
-              );
-              _textMessageInputController.text = "";
+              if (_listMessage.isEmpty) {
+                //on first message (add user to my_user collection of chat users)
+                APIs.sendFirstMessage(widget.chatUser,
+                    _textMessageInputController.text, Type.text);
+              } else {
+                //simply send message
+                APIs.sendMessage(widget.chatUser,
+                    _textMessageInputController.text, Type.text);
+              }
+              _textMessageInputController.text = '';
             }
           },
           child: Icon(

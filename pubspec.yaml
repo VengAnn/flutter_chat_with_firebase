@@ -63,10 +63,13 @@ dependencies:
   firebase_messaging: ^14.7.18
 
   # for calling RestAPIs
-  http: ^1.2.0
+  http: ^0.13.6
 
   # For creating notification channel
   flutter_notification_channel: ^2.0.0
+
+  # For storing images into gallery
+  gallery_saver: ^2.3.2
 
 
 dev_dependencies:

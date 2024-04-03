@@ -87,6 +87,34 @@ class APIs {
     return (await firestore.collection('users').doc(user.uid).get()).exists;
   }
 
+  // for adding an chat user for our conversation
+  static Future<bool> addChatUser(String email) async {
+    final data = await firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    log('data: ${data.docs}');
+
+    if (data.docs.isNotEmpty && data.docs.first.id != user.uid) {
+      //user exists
+      log('user exists: ${data.docs.first.data()}');
+
+      firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('my_users')
+          .doc(data.docs.first.id)
+          .set({});
+
+      return true;
+    } else {
+      //user doesn't exists
+
+      return false;
+    }
+  }
+
   // for getting current user info
   static Future<void> getSelfInfo() async {
     await firestore.collection('users').doc(user.uid).get().then((user) async {
@@ -126,9 +154,34 @@ class APIs {
         .set(chatUser.toJson());
   }
 
+  // for getting id's of know users form firebase database
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getMyusersId() {
+    return firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('my_users')
+        .snapshots();
+  }
+
   // for getting all users form firebase database
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() {
-    return firestore.collection('users').snapshots();
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(
+      List<String> usersIds) {
+    log('\nuserid: $usersIds');
+    return firestore
+        .collection('users')
+        .where('id', whereIn: usersIds)
+        .snapshots();
+  }
+
+  // for adding an user to my user when first message is send
+  static Future<void> sendFirstMessage(
+      ChatUser chatUser, String msg, Type type) async {
+    await firestore
+        .collection('users')
+        .doc(chatUser.id)
+        .collection('my_users')
+        .doc(user.uid)
+        .set({}).then((value) => sendMessage(chatUser, msg, type));
   }
 
   // for updating user information
@@ -276,5 +329,14 @@ class APIs {
         .delete();
     if (messageModel.type == Type.image)
       await storage.refFromURL(messageModel.msg!).delete();
+  }
+
+  // update message
+  static Future<void> updateMessage(
+      MessageModel messageModel, String updateMessage) async {
+    await firestore
+        .collection('chats/${getConversationID(messageModel.toId!)}/messages/')
+        .doc(messageModel.send)
+        .update({'msg': updateMessage});
   }
 }

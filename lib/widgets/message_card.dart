@@ -7,6 +7,7 @@ import 'package:flutter_wechat_firebase/data/api.dart';
 import 'package:flutter_wechat_firebase/models/message_model.dart';
 import 'package:flutter_wechat_firebase/utils/all_color.dart';
 import 'package:flutter_wechat_firebase/utils/my_date_util.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 
 class MessageCard extends StatefulWidget {
   final MessageModel messageModel;
@@ -25,8 +26,12 @@ class _MessageCardState extends State<MessageCard> {
   Widget build(BuildContext context) {
     bool isMe = APIs.user.uid == widget.messageModel.fromId;
     return InkWell(
+      onTap: () {
+        //close text field or keyboard
+        FocusScope.of(context).unfocus();
+      },
       onLongPress: () {
-        _showMessageUpdateDialog(isMe);
+        _showBottomSheet(isMe);
       },
       child: isMe ? _greenMessage() : _blueMessage(),
     );
@@ -39,8 +44,6 @@ class _MessageCardState extends State<MessageCard> {
       APIs.updateMessageReadStatus(widget.messageModel);
       log('message read updated');
     }
-
-    final med_Global = MediaQuery.of(context).size;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -174,8 +177,8 @@ class _MessageCardState extends State<MessageCard> {
     );
   }
 
-  //dialog for updating message content
-  void _showMessageUpdateDialog(bool isMe) {
+  // bottom sheet for modifying message details
+  void _showBottomSheet(bool isMe) {
     showModalBottomSheet(
       context: context,
       builder: (DialogContext) {
@@ -225,7 +228,23 @@ class _MessageCardState extends State<MessageCard> {
                       color: Colors.blue,
                     ),
                     name: "Save Image",
-                    onTap: () {},
+                    onTap: () async {
+                      try {
+                        log('Image Url: ${widget.messageModel.msg}');
+                        await GallerySaver.saveImage(widget.messageModel.msg!,
+                                albumName: 'We Chat')
+                            .then((success) {
+                          //for hiding bottom sheet
+                          Navigator.pop(context);
+                          if (success != null && success) {
+                            Dialogs.showSnackBar(
+                                context, 'Image Successfully Saved!');
+                          }
+                        });
+                      } catch (e) {
+                        log('ErrorWhileSavingImg: $e');
+                      }
+                    },
                   ),
 
             if (isMe)
@@ -245,7 +264,12 @@ class _MessageCardState extends State<MessageCard> {
                   color: Colors.blue,
                 ),
                 name: "Edit Message",
-                onTap: () {},
+                onTap: () {
+                  //for hiding bottom sheet
+                  Navigator.pop(context);
+
+                  _showMessageUpdateDialog();
+                },
               ),
 
             if (isMe)
@@ -261,6 +285,7 @@ class _MessageCardState extends State<MessageCard> {
                   await APIs.deleteMessage(widget.messageModel).then((value) {
                     //for hiding bottom sheet
                     Navigator.pop(context);
+                    //
                   });
                 },
               ),
@@ -297,6 +322,71 @@ class _MessageCardState extends State<MessageCard> {
                   ? "Read At: Not seen yet"
                   : "Read At: ${MyDateUtil.getMessageTime(context: DialogContext, time: widget.messageModel.read!)}",
               onTap: () {},
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // dialog update message content
+  void _showMessageUpdateDialog() {
+    String updatedMsg = widget.messageModel.msg!;
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+
+          // title
+          title: Row(
+            children: [
+              Icon(
+                Icons.message,
+                color: Colors.blue,
+                size: 29,
+              ),
+              Text('Update Message'),
+            ],
+          ),
+
+          // content
+          content: TextFormField(
+            initialValue: updatedMsg,
+            maxLines: null,
+            onChanged: (value) => updatedMsg = value,
+            decoration: InputDecoration(
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+            ),
+          ),
+
+          // actions
+          actions: [
+            // cancel button
+            MaterialButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.blue, fontSize: 16),
+              ),
+            ),
+            //update button
+            MaterialButton(
+              onPressed: () {
+                //hide alert dialog
+                Navigator.pop(dialogContext);
+
+                APIs.updateMessage(widget.messageModel, updatedMsg);
+              },
+              child: const Text(
+                'Update',
+                style: TextStyle(color: Colors.blue, fontSize: 16),
+              ),
             ),
           ],
         );

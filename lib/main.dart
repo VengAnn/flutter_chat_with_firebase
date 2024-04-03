@@ -11,8 +11,10 @@ import 'firebase_options.dart';
 // async return obj future
 // async* return obj stream
 Future<void> _initializeFirebare() async {
+  // this for firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // this custom Notification
   var result = await FlutterNotificationChannel.registerNotificationChannel(
       description: 'For Showing Message Notification',
       id: 'chats',

@@ -89,31 +89,52 @@ class APIs {
 
   // for adding an chat user for our conversation
   static Future<bool> addChatUser(String email) async {
-    final data = await firestore
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .get();
+    email = email.trim(); // Trim email input
 
-    log('data: ${data.docs}');
-
-    if (data.docs.isNotEmpty && data.docs.first.id != user.uid) {
-      //user exists
-      log('user exists: ${data.docs.first.data()}');
-
-      firestore
+    try {
+      // Fetch the user data from the Firestore 'users' collection where the email matches the input
+      final data = await firestore
           .collection('users')
-          .doc(user.uid)
-          .collection('my_users')
-          .doc(data.docs.first.id)
-          .set({});
+          .where('email', isEqualTo: email)
+          .get();
 
-      return true;
-    } else {
-      //user doesn't exists
+      log('data addChatUser: ${data.docs}');
+      log('email being checked: ${email}');
 
+      // Check if any user document was found
+      if (data.docs.isNotEmpty) {
+        // Log user data if found
+        log('User data found: ${data.docs.first.data()}');
+
+        // Ensure the found user is not the current user
+        if (data.docs.first.id != user.uid) {
+          // Log the user ID being added to the chat
+          log('Adding user to the chat: ${data.docs.first.id}');
+
+          // Add the user to the 'my_users' sub-collection of the current user
+          firestore
+              .collection('users')
+              .doc(user.uid)
+              .collection('my_users')
+              .doc(data.docs.first.id)
+              .set({});
+
+          return true;
+        } else {
+          log('Cannot add current user.');
+          return false;
+        }
+      } else {
+        log('No user found with email: $email');
+        return false;
+      }
+    } catch (e) {
+      log('Error in addChatUser: $e');
       return false;
     }
   }
+
+
 
   // for getting current user info
   static Future<void> getSelfInfo() async {

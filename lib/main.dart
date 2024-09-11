@@ -26,7 +26,7 @@ Future<void> _initializeFirebare() async {
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  //set full screen for show see splash screen full
+  //set full screen for show to see splash screen full
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
   //for setting orientation to portraint only

@@ -133,62 +133,78 @@ class _MyHomePageState extends State<MyHomePage> {
 
           body: StreamBuilder(
             stream: APIs.getMyusersId(),
-
-            //get id only know users
+            // Get id only known users
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
-                // if data loading
+              // If data is loading
                 case ConnectionState.waiting:
                 case ConnectionState.none:
                   return const Center(child: CircularProgressIndicator());
 
-                // if some or all data is loaded then show it
+              // If some or all data is loaded, then show it
                 case ConnectionState.active:
                 case ConnectionState.done:
-                  return StreamBuilder(
-                    stream: APIs.getAllUsers(
-                        snapshot.data?.docs.map((e) => e.id).toList() ?? []),
+                // Ensure snapshot has data and is not null
+                  if (snapshot.hasData && snapshot.data?.docs != null) {
+                    final userIds = snapshot.data?.docs.map((e) => e.id).toList() ?? [];
 
-                    // get only those users, who's ids are provided
-                    builder: (context, snapshot) {
-                      switch (snapshot.connectionState) {
-                        // if data loading
-                        case ConnectionState.waiting:
-                        case ConnectionState.none:
-                        //return const Center(
-                        //    child: CircularProgressIndicator());
+                    // If the userIds list is empty, show a message
+                    if (userIds.isEmpty) {
+                      return Center(child: Text("No users found to display!"));
+                    }
 
-                        // if some or all data is loaded then show it
-                        case ConnectionState.active:
-                        case ConnectionState.done:
-                          final data = snapshot.data!.docs;
-                          _listUser = data
-                              .map((e) => ChatUser.fromJson(e.data()))
-                              .toList();
+                    // If userIds are available, query Firestore
+                    return StreamBuilder(
+                      stream: APIs.getAllUsers(userIds),
+                      // Get only those users, whose ids are provided
+                      builder: (context, snapshot) {
+                        switch (snapshot.connectionState) {
+                        // If data is loading
+                          case ConnectionState.waiting:
+                          case ConnectionState.none:
+                            return const Center(
+                                child: CircularProgressIndicator());
 
-                          if (_listUser.isNotEmpty) {
-                            // list view builder
-                            return ListView.builder(
-                              itemCount: _isSearching
-                                  ? _searchList.length
-                                  : _listUser.length,
-                              physics: BouncingScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                return ChatUserCard(
-                                    chatUser: _isSearching
-                                        ? _searchList[index]
-                                        : _listUser[index]);
-                              },
-                            );
-                          } else {
-                            return Center(child: Text("No Connection found!"));
-                          }
-                      }
-                    },
-                  );
+                        // If some or all data is loaded then show it
+                          case ConnectionState.active:
+                          case ConnectionState.done:
+                          // Ensure snapshot has data and is not null
+                            if (snapshot.hasData && snapshot.data?.docs != null) {
+                              final data = snapshot.data!.docs;
+                              _listUser = data
+                                  .map((e) => ChatUser.fromJson(e.data()))
+                                  .toList();
+
+                              if (_listUser.isNotEmpty) {
+                                // List view builder
+                                return ListView.builder(
+                                  itemCount: _isSearching
+                                      ? _searchList.length
+                                      : _listUser.length,
+                                  physics: const BouncingScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    return ChatUserCard(
+                                        chatUser: _isSearching
+                                            ? _searchList[index]
+                                            : _listUser[index]);
+                                  },
+                                );
+                              } else {
+                                return const Center(child: Text("No connections found!"));
+                              }
+                            } else {
+                              return const Center(child: Text("No data found!"));
+                            }
+                        }
+                      },
+                    );
+                  } else {
+                    return const Center(child: Text("No user IDs found!"));
+                  }
               }
             },
           ),
+
           // floating button to add ...
           floatingActionButton: GestureDetector(
             onTap: () async {
@@ -264,12 +280,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     onPressed: () async {
                       //hide alert dialog
                       Navigator.pop(context);
+
                       if (email.isNotEmpty) {
-                        await APIs.addChatUser(email).then((value) {
-                          if (value) {
-                            Dialogs.showSnackBar(context, 'User Exists!');
-                          }
-                        });
+                        bool userAdded = await APIs.addChatUser(email);
+                        if (userAdded) {
+                          Dialogs.showSnackBar(context, 'User Added Successfully!');
+                        } else {
+                          Dialogs.showSnackBar(context, 'User Not Found or Cannot Add!');
+                        }
                       }
                     },
                     child: const Text(
